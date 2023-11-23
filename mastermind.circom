@@ -1,8 +1,6 @@
 pragma circom 2.1.6;
 include "circomlib/comparators.circom";
 
-//missing range check everywhere :) 
-
 template primify() {
     var primes[6] = [2, 3, 5, 7, 11, 13];
     signal input x[4];
@@ -15,7 +13,6 @@ template primify() {
             tmp[i] +=(j+1 == x[i]) * primes[j];
         }
     }
-  //this is sketchy
     y <-- tmp;
     for (var i = 0; i < 4; i++) {
         log("x[i], y[i] = ", x[i], ",", y[i]);
@@ -28,30 +25,18 @@ template Mastermind(n) {
     signal output outCorrect;
     signal output outAlmost;
 
-    component isEq1 = IsEqual();
-    isEq1.in[0] <== secret[0];
-    isEq1.in[1] <== guess[0];
-
-    component isEq2 = IsEqual();
-    isEq2.in[0] <== secret[1];
-    isEq2.in[1] <== guess[1];
-
-    component isEq3 = IsEqual();
-    isEq3.in[0] <== secret[2];
-    isEq3.in[1] <== guess[2];
-
-    component isEq4 = IsEqual();
-    isEq4.in[0] <== secret[3];
-    isEq4.in[1] <== guess[3];
+    var tmp = 0;
+    for (var i = 0; i < 4; i++) {
+        tmp += guess[i]==secret[i];
+    }
    
     component divCheck = divisionCheck();
     divCheck.guess <== guess;
     divCheck.secret <== secret;
 
-    outCorrect <== isEq1.out + isEq2.out + isEq3.out + isEq4.out;
+    outCorrect <-- tmp;
     outAlmost <== divCheck.out - outCorrect;
 }
-
 
 
 template divisionCheck(){
@@ -77,7 +62,6 @@ template divisionCheck(){
             product /= primG.y[i];
         }
     }
-  //this is a bit sketchy, 
     out <-- sumAlmost;
 }
 
@@ -86,5 +70,5 @@ component main {public [guess]} = Mastermind(4);
 
 /* INPUT = {
     "secret": ["2", "3", "3", "1"],
-    "guess": ["4", "1", "2", "5"]
+    "guess": ["2", "1", "2", "5"]
 } */
